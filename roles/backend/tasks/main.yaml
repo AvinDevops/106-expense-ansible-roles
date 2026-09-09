@@ -33,11 +33,15 @@
 #     remote_src: yes
 
 - name: importing common role
+  tags:
+  - deployment
   ansible.builtin.import_role:
     name: common
     tasks_from: app-pre-req
 
 - name: installing npm dependencies
+  tags:
+  - deployment
   ansible.builtin.command: npm install
   args:
     chdir: /app
@@ -51,17 +55,17 @@
   ansible.builtin.systemd_service:
     daemon_reload: true
 
-- name: start and enable backend service
-  ansible.builtin.service:
-    name: backend
-    state: started
-    enabled: yes
+# - name: start and enable backend service
+#   ansible.builtin.service:
+#     name: backend
+#     state: started
+#     enabled: yes
 
 - name: installing python mysql dependencies
   ansible.builtin.pip:
     name:
     - PyMySQL
-    - 
+    - cryptography
     executable: pip3.9
 
 - name: loading schema
@@ -73,7 +77,10 @@
     target: /app/schema/backend.sql
     name: all
 
-- name: restarting backend
+- name: restarting and enable backend
+  tags:
+  - deployment
   ansible.builtin.service:
     name: backend
     state: restarted
+    enabled: yes
